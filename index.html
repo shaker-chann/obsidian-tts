@@ -1,0 +1,466 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文字朗读工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            resize: none;
+            font-size: 16px;
+            line-height: 1.6;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea::placeholder {
+            color: #999;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 100px;
+            justify-content: center;
+        }
+
+        .btn-play {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-play:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+        }
+
+        .btn-pause {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-pause:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(240, 147, 251, 0.4);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .status.idle {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .status.loading {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .status.playing {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status.paused {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .speed-control {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .speed-control label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .speed-control select {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .speed-control select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .voice-control {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .voice-control label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .voice-control select {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+            min-width: 150px;
+        }
+
+        .voice-control select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #999;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔊 文字朗读工具</h1>
+
+        <div class="speed-control">
+            <label for="speedSelect">语速：</label>
+            <select id="speedSelect">
+                <option value="0.5">0.5x</option>
+                <option value="0.75">0.75x</option>
+                <option value="0.9">0.9x</option>
+                <option value="1" selected>1.0x</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="2">2.0x</option>
+            </select>
+        </div>
+
+        <div class="voice-control">
+            <label for="voiceSelect">音色：</label>
+            <select id="voiceSelect">
+                <option value="auto" selected>自动选择</option>
+            </select>
+        </div>
+        
+        <div class="input-section">
+            <textarea id="textInput" placeholder="请输入要朗读的文字内容..."></textarea>
+        </div>
+
+        <div class="controls">
+            <button id="playPauseBtn" class="btn-play">
+                <span id="playPauseIcon">▶</span> <span id="playPauseText">播放</span>
+            </button>
+            <button id="stopBtn" class="btn-stop">
+                <span>⏹</span> 停止
+            </button>
+        </div>
+
+        <div class="status" id="status">
+            准备就绪，请输入文字内容
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="footer">
+            Powered by tts.travisvn.com
+        </div>
+    </div>
+
+    <script>
+        const textInput = document.getElementById('textInput');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playPauseIcon = document.getElementById('playPauseIcon');
+        const playPauseText = document.getElementById('playPauseText');
+        const stopBtn = document.getElementById('stopBtn');
+        const status = document.getElementById('status');
+        const progressFill = document.getElementById('progressFill');
+        const speedSelect = document.getElementById('speedSelect');
+        const voiceSelect = document.getElementById('voiceSelect');
+
+        let utterance = null;
+        let isPlaying = false;
+        let isPaused = false;
+        let pausedText = '';
+        let pausedIndex = 0;
+
+        if (!('speechSynthesis' in window)) {
+            updateStatus('error', '您的浏览器不支持文字朗读功能');
+            playPauseBtn.disabled = true;
+        }
+
+        function loadVoices() {
+            const voices = window.speechSynthesis.getVoices();
+            const chineseVoices = voices.filter(voice => 
+                voice.lang.startsWith('zh')
+            );
+            
+            voiceSelect.innerHTML = '<option value="auto" selected>自动选择</option>';
+            
+            chineseVoices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.name;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                voiceSelect.appendChild(option);
+            });
+        }
+
+        textInput.addEventListener('input', () => {
+            if ('speechSynthesis' in window) {
+                playPauseBtn.disabled = !textInput.value.trim();
+                if (!isPlaying) {
+                    updateStatus('idle', '准备就绪，请点击播放按钮');
+                }
+            }
+        });
+
+        speedSelect.addEventListener('change', () => {
+            if (isPlaying && utterance) {
+                utterance.rate = parseFloat(speedSelect.value);
+            }
+        });
+
+        playPauseBtn.addEventListener('click', () => {
+            const text = textInput.value.trim();
+            if (!text) return;
+
+            if (isPaused) {
+                resumeSpeech();
+                return;
+            }
+
+            if (isPlaying) {
+                window.speechSynthesis.pause();
+                isPaused = true;
+                isPlaying = false;
+                updatePlayPauseUI(false);
+                updateStatus('paused', '已暂停');
+                return;
+            }
+
+            updateStatus('loading', '正在准备语音...');
+            playPauseBtn.disabled = true;
+
+            try {
+                utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN';
+                utterance.rate = parseFloat(speedSelect.value);
+                utterance.pitch = 1;
+
+                const voices = window.speechSynthesis.getVoices();
+                let selectedVoice = null;
+                
+                if (voiceSelect.value === 'auto') {
+                    selectedVoice = voices.find(voice => 
+                        voice.lang.startsWith('zh-CN') && voice.name.includes('Female')
+                    ) || voices.find(voice => voice.lang.startsWith('zh'));
+                } else {
+                    selectedVoice = voices.find(voice => voice.name === voiceSelect.value);
+                }
+                
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
+                }
+
+                utterance.onstart = () => {
+                    isPlaying = true;
+                    isPaused = false;
+                    updateUI();
+                    updateStatus('playing', '正在朗读...');
+                };
+
+                utterance.onend = () => {
+                    stopSpeech();
+                    updateStatus('idle', '朗读完成');
+                };
+
+                utterance.onerror = (event) => {
+                    stopSpeech();
+                    updateStatus('error', '语音合成失败: ' + event.error);
+                    console.error('Speech error:', event.error);
+                };
+
+                window.speechSynthesis.speak(utterance);
+
+            } catch (error) {
+                stopSpeech();
+                updateStatus('error', '语音合成失败，请重试');
+                console.error('Error:', error);
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            stopSpeech();
+            updateStatus('idle', '已停止');
+        });
+
+        function resumeSpeech() {
+            window.speechSynthesis.resume();
+            isPlaying = true;
+            isPaused = false;
+            updateUI();
+            updateStatus('playing', '正在朗读...');
+        }
+
+        function stopSpeech() {
+            window.speechSynthesis.cancel();
+            utterance = null;
+            isPlaying = false;
+            isPaused = false;
+            pausedText = '';
+            pausedIndex = 0;
+            progressFill.style.width = '0%';
+            updateUI();
+        }
+
+        function updateUI() {
+            if ('speechSynthesis' in window) {
+                playPauseBtn.disabled = !textInput.value.trim() && !isPaused;
+                stopBtn.disabled = !isPlaying && !isPaused;
+                updatePlayPauseUI(isPlaying || isPaused);
+            }
+        }
+
+        function updatePlayPauseUI(isPlayingOrPaused) {
+            if (isPlaying) {
+                playPauseBtn.className = 'btn-pause';
+                playPauseIcon.textContent = '⏸';
+                playPauseText.textContent = '暂停';
+            } else {
+                playPauseBtn.className = 'btn-play';
+                playPauseIcon.textContent = '▶';
+                playPauseText.textContent = isPaused ? '继续' : '播放';
+            }
+        }
+
+        function updateStatus(type, message) {
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        window.speechSynthesis.onvoiceschanged = () => {
+            loadVoices();
+            updateUI();
+        };
+
+        loadVoices();
+    </script>
+</body>
+</html>

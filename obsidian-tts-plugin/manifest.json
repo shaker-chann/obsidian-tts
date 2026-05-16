@@ -1,0 +1,10 @@
+{
+	"id": "simple-tts",
+	"name": "Simple TTS",
+	"version": "1.0.0",
+	"minAppVersion": "1.7.0",
+	"description": "Simple text-to-speech using browser Web Speech API. Read notes aloud with Chinese voice support.",
+	"author": "Developer",
+	"authorUrl": "",
+	"isDesktopOnly": false
+}

@@ -1,0 +1,42 @@
+.simple-tts-status-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 0 8px;
+}
+
+.simple-tts-btn {
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    min-height: 28px;
+}
+
+.simple-tts-btn:hover:not(.simple-tts-btn-disabled) {
+    background-color: var(--interactive-normal);
+    color: var(--text-accent);
+}
+
+.simple-tts-btn-disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.simple-tts-play {
+    color: var(--text-success);
+}
+
+.simple-tts-pause {
+    color: var(--text-warning);
+}
+
+.simple-tts-stop {
+    color: var(--text-error);
+}
