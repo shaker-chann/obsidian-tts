@@ -21,7 +21,6 @@
 
 .simple-tts-btn:hover:not(.simple-tts-btn-disabled) {
     background-color: var(--interactive-normal);
-    color: var(--text-accent);
 }
 
 .simple-tts-btn-disabled {
@@ -29,12 +28,13 @@
     cursor: not-allowed;
 }
 
-.simple-tts-play {
+.simple-tts-play-pause {
     color: var(--text-success);
 }
 
-.simple-tts-pause {
+.simple-tts-play-pause.simple-tts-btn-active {
     color: var(--text-warning);
+    background-color: var(--interactive-hover);
 }
 
 .simple-tts-stop {
