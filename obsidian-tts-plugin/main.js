@@ -33,18 +33,13 @@ class SimpleTTSPlugin extends Plugin {
 
             if (chineseVoices.length > 0) {
                 this.availableVoices = chineseVoices;
-                console.log('可用的中文语音数量:', chineseVoices.length);
+                // console.log('可用的中文语音数量:', chineseVoices.length);
             } else if (voices.length > 0) {
                 this.availableVoices = voices;
-                console.log('未找到中文语音，使用所有语音:', voices.length);
+                // console.log('未找到中文语音，使用所有语音:', voices.length);
             }
 
-            if (previousVoices && previousVoices.length === 0 && this.availableVoices && this.availableVoices.length > 0) {
-                const settingTab = this.app.setting;
-                if (settingTab && settingTab.openTab) {
-                    settingTab.openTab();
-                }
-            }
+
         };
 
         load();
@@ -125,7 +120,7 @@ class SimpleTTSPlugin extends Plugin {
     getActiveNoteText() {
         // 获取活动的leaf
         const activeLeaf = this.app.workspace.activeLeaf;
-        console.log('活动leaf:', activeLeaf);
+        // console.log('活动leaf:', activeLeaf);
 
         if (!activeLeaf) {
             console.error('没有活动的leaf');
@@ -133,7 +128,7 @@ class SimpleTTSPlugin extends Plugin {
         }
 
         const view = activeLeaf.view;
-        console.log('视图类型:', view.getViewType ? view.getViewType() : '未知');
+        // console.log('视图类型:', view.getViewType ? view.getViewType() : '未知');
 
         // 尝试获取编辑器
         let editor = null;
@@ -150,10 +145,10 @@ class SimpleTTSPlugin extends Plugin {
         // 方式3: 尝试通过leaf获取
         else if (activeLeaf.getViewState) {
             const state = activeLeaf.getViewState();
-            console.log('视图状态:', state);
+            // console.log('视图状态:', state);
         }
 
-        console.log('编辑器:', editor);
+        // console.log('编辑器:', editor);
 
         if (!editor) {
             console.error('无法获取编辑器');
@@ -163,17 +158,17 @@ class SimpleTTSPlugin extends Plugin {
         // 获取选中的文本或全部文本
         const selection = editor.getSelection();
         if (selection) {
-            console.log('选中的文本:', selection);
+            // console.log('选中的文本:', selection);
             return selection;
         }
 
         const content = editor.getValue();
-        console.log('文档内容长度:', content.length);
+        // console.log('文档内容长度:', content.length);
         return content;
     }
 
     play() {
-        console.log('play 方法被调用');
+        // console.log('play 方法被调用');
 
         if (!('speechSynthesis' in window)) {
             console.error('浏览器不支持 Web Speech API');
@@ -195,7 +190,7 @@ class SimpleTTSPlugin extends Plugin {
         }
 
         const text = this.getActiveNoteText();
-        console.log('要朗读的文本长度:', text.length);
+        // console.log('要朗读的文本长度:', text.length);
 
         if (!text.trim()) {
             console.error('没有文本可以朗读');
@@ -206,7 +201,7 @@ class SimpleTTSPlugin extends Plugin {
     }
 
     startSpeech(text) {
-        console.log('开始朗读');
+        // console.log('开始朗读');
         this.stop();
 
         this.utterance = new SpeechSynthesisUtterance(text);
@@ -220,7 +215,7 @@ class SimpleTTSPlugin extends Plugin {
         const voices = this.availableVoices && this.availableVoices.length > 0
             ? this.availableVoices
             : window.speechSynthesis.getVoices();
-        console.log('可用的语音数量:', voices.length);
+        // console.log('可用的语音数量:', voices.length);
 
         if (this.settings.voice === 'auto') {
             // 自动选择中文语音
@@ -229,34 +224,38 @@ class SimpleTTSPlugin extends Plugin {
             );
             if (chineseVoice) {
                 this.utterance.voice = chineseVoice;
-                console.log('选择的语音:', chineseVoice.name);
+                // console.log('选择的语音:', chineseVoice.name);
             } else {
-                console.log('未找到中文语音，使用默认语音');
+                // console.log('未找到中文语音，使用默认语音');
             }
         } else {
             const selectedVoice = voices.find(voice => voice.name === this.settings.voice);
             if (selectedVoice) {
                 this.utterance.voice = selectedVoice;
-                console.log('选择的语音:', selectedVoice.name);
+                // console.log('选择的语音:', selectedVoice.name);
             }
         }
 
         this.utterance.onstart = () => {
-            console.log('朗读开始');
+            // console.log('朗读开始');
             this.isPlaying = true;
             this.isPaused = false;
             this.updateButtonStates();
         };
 
         this.utterance.onend = () => {
-            console.log('朗读结束');
+            // console.log('朗读结束');
             this.isPlaying = false;
             this.isPaused = false;
             this.updateButtonStates();
         };
 
         this.utterance.onerror = (event) => {
-            console.error('语音合成错误:', event);
+            // cancel() 会触发 onerror 而非 onend，错误类型为 interrupted/canceled，属于正常行为
+            if (event.error === 'interrupted' || event.error === 'canceled') {
+                return;
+            }
+            console.error('语音合成错误:', event.error, event);
             this.isPlaying = false;
             this.isPaused = false;
             this.updateButtonStates();
